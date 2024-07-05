@@ -21,24 +21,29 @@ Add Poetry to your PATH (if not automatically added):
 ## Setup Instructions
 
 1. **Navigate to the backend directory**:
+
     ```sh
     cd backend
     ```
 
 2. **Install dependencies using Poetry**:
+
     ```sh
     poetry install
     ```
 
 3. **Set up the database with the necessary tables**:
+
     ```sh
     poetry run bash ./prestart.sh
     ```
 
 4. **Run the backend server**:
+
     ```sh
     poetry run uvicorn app.main:app --reload
     ```
 
 5. **Update configuration**:
+
    Ensure you update the necessary configurations in the `.env` file, particularly the database configuration.
