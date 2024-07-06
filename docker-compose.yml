@@ -38,10 +38,10 @@ services:
 
   backend:
     build: ./backend
-    ports:
-      - "8000:8000"
     image: backend:fastapi
     container_name: backend
+    ports:
+      - "8000:8000"
     labels:
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)"
       - "traefik.http.routers.backend.entrypoints=websecure,web"
@@ -49,14 +49,14 @@ services:
       - "traefik.http.routers.backend.middlewares=auth,api-stripprefix"
     depends_on:
       - postgres
-      - traefik
+      - proxy
 
   frontend:
     build: ./frontend
-    ports:
-      - "3000:3000"
     image: frontend:react
     container_name: frontend
+    ports:
+      - "3000:3000"
     labels:
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
@@ -64,17 +64,17 @@ services:
       - "traefik.http.routers.frontend.tls.certresolver=myresolver"
     depends_on:
       - backend
-      - traefik
+      - proxy
 
   adminer:
     image: adminer:latest
     container_name: adminer
+    ports:
+      - "8080:8080"
     labels:
       - "traefik.http.routers.adminer.rule=Host(`db.qurtana.com.ng`)"
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"
       - "traefik.http.routers.adminer.entrypoints=websecure"
       - "traefik.http.routers.adminer.tls.certresolver=myresolver"
-    ports:
-      - "8080:8080"
     depends_on:
       - postgres
