@@ -8,6 +8,8 @@ services:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: changethis123
       POSTGRES_DB: app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   proxy:
     image: traefik:v3.1.0-rc3
@@ -78,3 +80,7 @@ services:
       - "traefik.http.routers.adminer.tls.certresolver=myresolver"
     depends_on:
       - postgres
+
+volumes:
+  postgres_data:
+  letsencrypt:
