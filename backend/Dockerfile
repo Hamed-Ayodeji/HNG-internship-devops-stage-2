@@ -1,13 +1,13 @@
 # Stage 1: Build stage
 # Use a slim Python image for a smaller footprint
-FROM python:3.9.19-slim-bookworm as builder
+FROM python:3.9-slim-bullseye AS builder
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Install Poetry securely by downloading the installer and verifying its integrity before execution
-RUN curl -sSL https://install.python-poetry.org -o install_poetry.py && \
-    python3 install_poetry.py && \
+RUN apt-get update && apt-get install -y curl && \
+    curl -sSL https://install.python-poetry.org | python3 - && \
     poetry config virtualenvs.create false
 
 # Copy only the files needed for installing dependencies
@@ -21,7 +21,7 @@ COPY . .
 
 # Stage 2: Run stage
 # Use a slim Python image for runtime to reduce image size
-FROM python:3.9.19-slim-bookworm
+FROM python:3.9-slim-bullseye
 
 # Set the working directory in the container
 WORKDIR /app
