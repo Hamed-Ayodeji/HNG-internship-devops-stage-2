@@ -1,6 +1,6 @@
 # Stage 1: Build stage
 # Use a slim Node.js image for a smaller footprint
-FROM node:22.4.0-slim as builder
+FROM node:22.4.0-slim AS builder
 
 # Set the working directory in the container
 WORKDIR /app
@@ -29,4 +29,4 @@ COPY --from=builder /app ./
 EXPOSE 3000
 
 # Command to run the application
-CMD ["npm", "start"]
+CMD ["npm", "run", "build"]
