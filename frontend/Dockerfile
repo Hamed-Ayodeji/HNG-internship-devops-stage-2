@@ -1,23 +1,23 @@
 # Stage 1: Build stage
 # Use a slim Node.js image for a smaller footprint
-FROM node:22.4.0-slim AS builder
+FROM node:current-slim AS builder
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy package.json and package-lock.json to leverage Docker cache
 # This is efficient for rebuilding images when dependencies have not changed
-COPY package*.json ./
+COPY ./package.json ./package-lock.json ./
 
-# Use npm ci for installing dependencies to ensure a clean, consistent install
-RUN npm ci
+# Use npm install to install dependencies
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
 
 # Stage 2: Run stage
 # Again, using a slim Node.js image for runtime to reduce image size
-FROM node:22.4.0-slim
+FROM node:current-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -29,4 +29,4 @@ COPY --from=builder /app ./
 EXPOSE 3000
 
 # Command to run the application
-CMD ["npm", "run", "build"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
