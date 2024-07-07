@@ -22,11 +22,5 @@ COPY . .
 # Expose the port the application listens on
 EXPOSE 8000
 
-# Copy the prestart script into the image and make it executable
-# This script is used for database migrations or other pre-start tasks
-COPY prestart.sh /prestart.sh
-RUN chmod +x /prestart.sh
-RUN /bin/bash /prestart.sh
-
 # Start the Uvicorn server with the application
 CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
