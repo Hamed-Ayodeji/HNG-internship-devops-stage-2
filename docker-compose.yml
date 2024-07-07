@@ -25,7 +25,7 @@ services:
     labels:
       - "traefik.http.routers.adminer.rule=Host(`db.${DOMAIN}`) && PathPrefix(`/adminer`)"
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"
-      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.entrypoints=websecure,web"
       - "traefik.http.routers.adminer.tls.certresolver=myresolver"
     depends_on:
       - postgres
