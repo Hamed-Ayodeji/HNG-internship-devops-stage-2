@@ -1,24 +1,46 @@
-version: "3.9"
+version: "3.8"
 
 services:
   postgres:
-    image: postgres:17beta2-bullseye
-    container_name: postgres
+    image: postgres:12
+    container_name: postgresDb
+    restart: always
+    env_file:
+      - ./backend/.env
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: changethis123
-      POSTGRES_DB: app
+    - POSTGRES_USER=${newuser}
+    - POSTGRES_PASSWORD=${newuser}
+    - POSTGRES_DB=${newuser}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  adminer:
+    image: adminer:latest
+    container_name: postgresDbAdminer
+    restart: always
+    labels:
+      - "traefik.http.routers.adminer.rule=Host(`db.qurtana.com.ng`)"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls.certresolver=myresolver"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
 
   traefik:
-    image: traefik:v3.1.0-rc3
-    container_name: traefik
+    image: traefik:v2.5
+    container_name: traefikProxyManager
     command:
       - "--log.level=DEBUG"
       - "--providers.docker=true"
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.dashboard.address=:8090"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=ayodejihamed93@gmail.com"
@@ -35,11 +57,17 @@ services:
       - "traefik.http.routers.api.rule=Host(`proxy.qurtana.com.ng`)"
       - "traefik.http.routers.api.service=api@internal"
       - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.entrypoints=dashboard"
+      - "traefik.http.routers.dashboard.service=api@internal"
 
   backend:
     build: ./backend
     image: backend:fastapi
     container_name: backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
     labels:
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)"
       - "traefik.http.routers.backend.entrypoints=websecure,web"
@@ -53,6 +81,10 @@ services:
     build: ./frontend
     image: frontend:react
     container_name: frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env
     labels:
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
@@ -61,19 +93,6 @@ services:
     depends_on:
       - backend
       - traefik
-
-  adminer:
-    image: adminer:latest
-    container_name: adminer
-    labels:
-      - "traefik.http.routers.adminer.rule=Host(`db.qurtana.com.ng`)"
-      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
-      - "traefik.http.routers.adminer.entrypoints=websecure"
-      - "traefik.http.routers.adminer.tls.certresolver=myresolver"
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
 
 volumes:
   postgres_data:
