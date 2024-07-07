@@ -54,15 +54,16 @@ services:
       - "443:443"
       - "8090:8090"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./letsencrypt:/letsencrypt"
+      - /var/run/docker.sock:/var/run/docker.sock
+      - letsencrypt:/letsencrypt
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`proxy.qurtana.com.ng`)"
       - "traefik.http.routers.api.service=api@internal"
       - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.dashboard.entrypoints=dashboard"
+      - "traefik.http.routers.dashboard.rule=Host(`proxy.qurtana.com.ng`) && PathPrefix(`/dashboard`)"
       - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=dashboard"
     networks:
       - mynetwork
 
