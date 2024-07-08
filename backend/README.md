@@ -114,17 +114,7 @@ This section explains how to containerize the backend application using Docker, 
 
     - Indicates that the container listens on port 8000.
 
-8. **Copy and Execute Prestart Script**
-
-    ```Dockerfile
-    COPY prestart.sh /prestart.sh
-    RUN chmod +x /prestart.sh
-    RUN /bin/bash /prestart.sh
-    ```
-
-    - Copies and executes the prestart script to perform initial setup tasks.
-
-9. **Start Uvicorn Server**
+8. **Start Uvicorn Server**
 
     ```Dockerfile
     CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

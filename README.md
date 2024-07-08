@@ -4,10 +4,11 @@ Welcome to the Full-Stack FastAPI and React template repository. This repository
 
 ## Project Structure
 
-The repository is organized into two main directories:
+The repository is organized into the following main directories:
 
 - **frontend**: Contains the ReactJS application.
 - **backend**: Contains the FastAPI application and PostgreSQL database integration.
+- **aws-server**: Contains Terraform configuration for AWS EC2 deployment.
 
 Each directory has its own README file with detailed instructions specific to that part of the application.
 
@@ -18,216 +19,179 @@ To get started with this template, please follow the instructions in the respect
 - [Frontend README](./frontend/README.md)
 - [Backend README](./backend/README.md)
 
-## Docker Compose Setup
+## Docker Configuration
 
-The `docker-compose.yml` file orchestrates the setup and deployment of the entire stack, ensuring all components work seamlessly together. Below is a breakdown of the configuration, explained in detailed snippets.
+The `docker-compose.yml` file is located in the root directory of the project. Individual Dockerfiles for the frontend and backend can be found in their respective directories. [Dockerfile for the backend](./backend/Dockerfile) and [Dockerfile for the frontend](./frontend/Dockerfile).
 
-### Services
+A new `.env` file has been created in the root directory to store environment variables used by the docker-compose file. Ensure this file is properly configured before running the Docker setup.
 
-#### Postgres Service
+## AWS Deployment
 
-```yaml
-version: "3.8"
+For the final deployment, an EC2 instance using a t2.medium type has been created. The Terraform configuration for this can be found in the [aws-server](./aws-server/) folder.
 
-services:
-  postgres:
-    image: postgres:17beta1-alpine
-    container_name: postgresDb
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - mynetwork
-```
+## Docker Compose Configuration Documentation: Overview
 
-- **Image**: Specifies the Docker image `postgres:17beta1-alpine` for a lightweight and efficient PostgreSQL database.
-- **Container Name**: Names the container `postgresDb` for easy identification.
-- **Environment Variables**: Loads environment variables from the `.env` file for database configuration.
-- **Volumes**: Maps the host volume `postgres_data` to persist data in the container directory `/var/lib/postgresql/data`.
-- **Ports**: Exposes port `5432` for database connections.
-- **Networks**: Connects to a custom Docker network named `mynetwork`.
+This docker-compose file sets up a full-stack application environment with the following services:
 
-#### Adminer Service
+1. PostgreSQL database
+2. Adminer (database management tool)
+3. Traefik (reverse proxy and load balancer)
+4. Backend service (FastAPI)
+5. Frontend service (React)
 
-```yaml
-  adminer:
-    image: adminer:latest
-    container_name: postgresDbAdminer
-    env_file:
-      - .env
-    labels:
-      - "traefik.http.routers.adminer.rule=Host(`db.${DOMAIN}`) && PathPrefix(`/adminer`)"
-      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
-      - "traefik.http.routers.adminer.entrypoints=websecure"
-      - "traefik.http.routers.adminer.tls.certresolver=myresolver"
-    depends_on:
-      - postgres
-    ports:
-      - "8080:8080"
-    networks:
-      - mynetwork
-```
+The setup includes automatic HTTPS configuration, database management, and proper networking between services.
 
-- **Image**: Uses `adminer:latest` for a database management UI.
-- **Container Name**: Names the container `postgresDbAdminer`.
-- **Labels**: Configures Traefik rules for routing and securing access to Adminer.
-  - **Host Rule**: Routes traffic based on the host `db.${DOMAIN}` and path prefix `/adminer`.
-  - **Service Port**: Specifies the internal service port `8080`.
-  - **Entry Points**: Uses the `websecure` entry point for HTTPS traffic.
-  - **TLS Cert Resolver**: Uses the `myresolver` for TLS certificate management.
-- **Depends On**: Ensures the `postgres` service starts before Adminer.
-- **Ports**: Exposes port `8080` for Adminer.
-- **Networks**: Connects to `mynetwork`.
+## Services
 
-#### Traefik Service
+### 1. PostgreSQL (postgres)
 
-```yaml
-  traefik:
-    image: traefik:v2.5
-    container_name: traefikProxyManager
-    env_file:
-      - .env
-    command:
-      - "--log.level=DEBUG"
-      - "--providers.docker=true"
-      - "--api.insecure=true"
-      - "--api.dashboard=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.dashboard.address=:8090"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=${FIRST_SUPERUSER}"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8090:8090"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./letsencrypt:/letsencrypt
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`proxy.${DOMAIN}`) && PathPrefix(`/dashboard`)"
-    networks:
-      - mynetwork
-```
+- **Image**: postgres:17beta1-alpine
+- **Container Name**: postgresDb
+- **Environment Variables**:
+  - POSTGRES_USER
+  - POSTGRES_PASSWORD
+  - POSTGRES_DB
+- **Volumes**: postgres_data:/var/lib/postgresql/data
+- **Port**: 5432
+- **Network**: mynetwork
 
-- **Image**: Uses `traefik:v2.5` as a reverse proxy and load balancer.
-- **Container Name**: Names the container `traefikProxyManager`.
-- **Environment Variables**: Loads environment variables from the `.env` file.
-- **Command**: Configures Traefik with various options:
-  - **Log Level**: Sets the log level to `DEBUG`.
-  - **Providers**: Enables Docker provider.
-  - **API**: Enables the API and dashboard.
-  - **Entry Points**: Defines HTTP (`:80`), HTTPS (`:443`), and dashboard (`:8090`) entry points.
-  - **Certificate Resolvers**: Configures ACME HTTP challenge for automatic Let's Encrypt certificate management.
-- **Ports**: Exposes ports `80` (HTTP), `443` (HTTPS), and `8090` (dashboard).
-- **Volumes**: Shares the Docker socket and a directory for Let's Encrypt certificates.
-- **Labels**: Configures Traefik rules for the API dashboard.
-  - **Enable**: Enables Traefik for this container.
-  - **Router Rule**: Routes traffic based on the host `proxy.${DOMAIN}` and path prefix `/dashboard`.
-- **Networks**: Connects to `mynetwork`.
+This service sets up a PostgreSQL database using the Alpine-based image. It uses environment variables from a `.env` file for configuration.
 
-#### Backend Service
+### 2. Adminer
 
-```yaml
-  backend:
-    build: ./backend
-    image: backend:fastapi
-    container_name: backend
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    labels:
-      - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)"
-      - "traefik.http.routers.backend.entrypoints=websecure,web"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.http.routers.backend.middlewares=api-stripprefix"
-    depends_on:
-      - postgres
-      - traefik
-    networks:
-      - mynetwork
-```
+- **Image**: adminer:latest
+- **Container Name**: postgresDbAdminer
+- **Dependencies**: postgres
+- **Port**: 8080
+- **Network**: mynetwork
+- **Labels**: Configuration for Traefik routing
 
-- **Build**: Specifies the build context as `./backend`.
-- **Image**: Uses `backend:fastapi` image.
-- **Container Name**: Names the container `backend`.
-- **Ports**: Exposes port `8000` for the FastAPI application.
-- **Environment Variables**: Loads environment variables from the `.env` file.
-- **Labels**: Configures Traefik rules for routing:
-  - **Router Rule**: Routes traffic based on path prefixes (`/api`, `/docs`, `/redoc`).
-  - **Entry Points**: Uses both HTTP (`web`) and HTTPS (`websecure`) entry points.
-  - **Service Port**: Specifies the internal service port `8000`.
-  - **Middleware**: Uses `api-stripprefix` middleware for URL path adjustments.
-- **Depends On**: Ensures `postgres` and `traefik` services start before the backend.
-- **Networks**: Connects to `mynetwork`.
+Adminer provides a web interface for database management. It's configured to work with Traefik for secure access via HTTPS.
 
-#### Frontend Service
+### 3. Traefik
 
-```yaml
-  frontend:
-    build: ./frontend
-    image: frontend:react
-    container_name: frontend
-    ports:
-      - "3000:3000"
-    labels:
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-      - "traefik.http.routers.frontend.entrypoints=websecure,web"
-      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
-    depends_on:
-      - backend
-      - traefik
-    networks:
-      - mynetwork
-```
+- **Image**: traefik:v2.5
+- **Container Name**: traefikProxyManager
+- **Ports**:
+  - 80 (HTTP)
+  - 443 (HTTPS)
+  - 8090 (Traefik dashboard)
+- **Volumes**:
+  - Docker socket
+  - Let's Encrypt certificates
+- **Labels**: Configuration for Traefik dashboard and HTTPS redirection
 
-- **Build**: Specifies the build context as `./frontend`.
-- **Image**: Uses `frontend:react` image.
-- **Container Name**: Names the container `frontend`.
-- **Ports**: Exposes port `3000` for the React application.
-- **Labels**: Configures Traefik rules for routing:
-  - **Router Rule**: Routes all traffic with path prefix `/`.
-  - **Service Port**: Specifies the internal service port `3000`.
-  - **Entry Points**: Uses both HTTP (`web`) and HTTPS (`websecure`) entry points.
-  - **TLS Cert Resolver**: Uses the `myresolver` for TLS certificate management.
-- **Depends On**: Ensures `backend` and `traefik` services start before the frontend.
-- **Networks**: Connects to `mynetwork`.
+Traefik acts as a reverse proxy, handling routing and SSL termination. It's configured to automatically obtain and renew SSL certificates using Let's Encrypt.
 
-### Volumes
+### 4. Backend
 
-```yaml
-volumes:
-  postgres_data:
-  letsencrypt:
-```
+- **Build**: ./backend
+- **Image**: backend:fastapi
+- **Container Name**: backend
+- **Port**: 8000
+- **Dependencies**: postgres, traefik
+- **Network**: mynetwork
+- **Labels**: Configuration for Traefik routing
 
-- **postgres_data**: Volume for pers
+This service builds and runs the backend application, likely a FastAPI service. It's configured to work with Traefik for routing API requests.
 
-isting PostgreSQL data.
+### 5. Frontend
 
-- **letsencrypt**: Volume for storing Let's Encrypt certificates.
+- **Build**: ./frontend
+- **Image**: frontend:react
+- **Container Name**: frontend
+- **Port**: 3000
+- **Dependencies**: backend, traefik
+- **Network**: mynetwork
+- **Labels**: Configuration for Traefik routing
 
-### Networks
+This service builds and runs the frontend application, likely a React app. It's configured to work with Traefik for routing and includes setup for API proxying.
 
-```yaml
-networks:
-  mynetwork:
-```
+## Networks
 
-- **mynetwork**: Custom Docker network to ensure all services can communicate with each other.
+- **mynetwork**: A custom bridge network for communication between services.
 
-## Conclusion
+## Volumes
 
-This documentation provides a comprehensive overview of setting up a full-stack FastAPI and React application using Docker and Traefik. By following these instructions, you can ensure a consistent and efficient development and deployment environment.
+- **postgres_data**: Persistent storage for PostgreSQL data.
+- **letsencrypt**: Storage for Let's Encrypt certificates.
+
+## Environment Variables
+
+The configuration uses a `.env` file for sensitive information and configuration. Key variables include:
+
+- POSTGRES_USER
+- POSTGRES_PASSWORD
+- POSTGRES_DB
+- DOMAIN
+- ACME_EMAIL
+
+## Traefik Configuration
+
+Traefik is configured with the following features:
+
+- Automatic HTTPS using Let's Encrypt
+- HTTP to HTTPS redirection
+- www to non-www redirection
+- API and dashboard access
+- Docker provider for automatic service discovery
+
+## Accessing Services
+
+- **Adminer**: Accessible at either `http://qurtana.com.ng:8080` or `http://db.qurtana.com.ng:8080`
+- **Traefik Dashboard**: Accessible at `http://qurtana.com.ng:8090` or `http://proxy.qurtana.com.ng:8090`
+- **Backend API**: Accessible at `http://qurtana.com.ng/api`
+- **Backend docs**: Accessible at `http://qurtana.com.ng/docs`
+- **Backend redoc**: Accessible at `http://qurtana.com.ng/redoc`
+- **Frontend**: Accessible at `http://qurtana.com.ng`
+
+## Local Development
+
+The configuration includes settings for local development:
+
+- Adminer: `http://db.localhost:8080`
+- Traefik Dashboard: `http://proxy.localhost:8090`
+- Backend API: `http://localhost/api`
+- Backend docs: `http://localhost/docs`
+- Backend redoc: `http://localhost/redoc`
+- Frontend: `http://localhost`
+
+## Security Notes
+
+- Ensure the `.env` file is properly secured and not committed to version control.
+- The Traefik API is set to insecure mode (`--api.insecure=true`). In production, consider securing this.
+- Review and adjust the exposed ports as needed for your security requirements.
+
+## Usage
+
+To use this Docker setup:
+
+1. Ensure Docker and Docker Compose are installed on your system.
+2. Navigate to the root directory of the project.
+3. Create a `.env` file in the root directory and add the necessary environment variables.
+4. Run `docker-compose up -d` to start all services.
+5. Access the services using the URLs mentioned in the "Accessing Services" section.
+
+## Deployment
+
+To deploy this setup:
+
+1. Ensure Docker and Docker Compose are installed on your EC2 instance.
+2. Clone the repository to your EC2 instance.
+3. Set up the `.env` file with necessary variables in the root directory.
+4. Run `docker-compose up -d` to start all services.
+
+Remember to monitor logs and perform regular updates and backups, especially for the database and SSL certificates.
+
+## Testing
+
+Here are screenshots of the various landing pages:
+
+[Insert screenshots here]
+
+These screenshots demonstrate the successful deployment and functionality of:
+
+- The main frontend application
+- The backend API documentation (Swagger UI)
+- The Adminer database management interface
+- The Traefik dashboard
