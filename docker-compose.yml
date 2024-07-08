@@ -122,9 +122,9 @@ services:
       - "traefik.http.routers.frontend-local.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "traefik.http.middlewares.api-proxy.forwardauth.address=http://frontend:3000/api-proxy"
-      - "traefik.http.routers.frontend-http.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
-      - "traefik.http.routers.frontend-http.entrypoints=web"
-      - "traefik.http.routers.frontend-http.middlewares=https-redirect@docker"
+      # - "traefik.http.routers.frontend-http.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
+      # - "traefik.http.routers.frontend-http.entrypoints=web"
+      # - "traefik.http.routers.frontend-http.middlewares=https-redirect@docker"
     depends_on:
       - backend
       - traefik
