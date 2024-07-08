@@ -35,6 +35,8 @@ LATEST_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/rel
 sudo curl -L "https://github.com/docker/compose/releases/download/${LATEST_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
+sudo chown $USER:$USER /var/run/docker.sock
+
 # Verify installations
 echo "Verifying installations..."
 docker --version
