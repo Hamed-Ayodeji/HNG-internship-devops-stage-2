@@ -138,23 +138,61 @@ Traefik is configured with the following features:
 
 ## Accessing Services
 
-- **Adminer**: Accessible at either `http://qurtana.com.ng:8080` or `http://db.qurtana.com.ng:8080`
-- **Traefik Dashboard**: Accessible at `http://qurtana.com.ng:8090` or `http://proxy.qurtana.com.ng:8090`
-- **Backend API**: Accessible at `http://qurtana.com.ng/api`
-- **Backend docs**: Accessible at `http://qurtana.com.ng/docs`
-- **Backend redoc**: Accessible at `http://qurtana.com.ng/redoc`
-- **Frontend**: Accessible at `http://qurtana.com.ng`
+- **Adminer**: Accessible at either `http://qurtana.com.ng:8080`
+
+![Adminer](./.img/qurtana.com.ng-8080.png)
+
+- **Traefik Dashboard**: Accessible at `http://qurtana.com.ng:8090`
+
+![Traefik Dashboard](./.img/qurtana.com.ng-8090.png)
+
+- **Backend API**: Accessible at `https://qurtana.com.ng/api`
+
+![Backend API](./.img/qurtana.com.ng-api.png)
+
+- **Backend docs**: Accessible at `https://qurtana.com.ng/docs`
+
+![Backend Docs](./.img/qurtana.com.ng-docs.png)
+
+- **Backend redoc**: Accessible at `https://qurtana.com.ng/redoc`
+
+![Backend Redoc](./.img/qurtana.com.ng-redoc.png)
+
+- **Frontend**: Accessible at `https://qurtana.com.ng`
+
+![Frontend](./.img/qurtana.com.ng.png)
 
 ## Local Development
 
 The configuration includes settings for local development:
 
-- Adminer: `http://db.localhost:8080`
-- Traefik Dashboard: `http://proxy.localhost:8090`
+- Adminer: `http://db.localhost:8080` or `http://localhost:8080`
+
+![Adminer](./.img/localhost-8080.png)
+
+![Adminer Login](./.img/db.localhost.png)
+
+- Traefik Dashboard: `http://proxy.localhost:8090` or `http://localhost:8090`
+
+![Traefik Dashboard html-page](./.img/proxy.localhost.png)
+
+![Traefik Dashboard](./.img/localhost-8090.png)
+
 - Backend API: `http://localhost/api`
+
+![Backend API](./.img/localhost-api.png)
+
 - Backend docs: `http://localhost/docs`
+
+![Backend Docs](./.img/localhost-docs.png)
+
 - Backend redoc: `http://localhost/redoc`
+
+![Backend Redoc](./.img/localhost-redoc.png)
+
 - Frontend: `http://localhost`
+
+![Frontend](./.img/localhost.png)
 
 ## Security Notes
 

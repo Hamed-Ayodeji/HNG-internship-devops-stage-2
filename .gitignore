@@ -3,3 +3,6 @@ letsencrypt
 
 # # aws terraform server
 # aws-server
+
+# secret files
+.env
