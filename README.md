@@ -1,5 +1,29 @@
 # Full-Stack FastAPI and React Template
 
+## Table of Contents
+
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Docker Configuration](#docker-configuration)
+- [AWS Deployment](#aws-deployment)
+- [Docker Compose Configuration Documentation: Overview](#docker-compose-configuration-documentation-overview)
+  - [Services](#services)
+    - [1. PostgreSQL (postgres)](#1-postgresql-postgres)
+    - [2. Adminer](#2-adminer)
+    - [3. Traefik](#3-traefik)
+    - [4. Backend](#4-backend)
+    - [5. Frontend](#5-frontend)
+  - [Networks](#networks)
+  - [Volumes](#volumes)
+  - [Environment Variables](#environment-variables)
+  - [Traefik Configuration](#traefik-configuration)
+  - [Accessing Services](#accessing-services)
+  - [Local Development](#local-development)
+  - [Security Notes](#security-notes)
+  - [Usage](#usage)
+  - [Deployment](#deployment)
+  - [Testing](#testing)
+
 Welcome to the Full-Stack FastAPI and React template repository. This repository serves as a demo application for interns, showcasing how to set up and run a full-stack application with a FastAPI backend and a ReactJS frontend using ChakraUI.
 
 ## Project Structure
