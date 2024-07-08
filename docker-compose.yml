@@ -92,16 +92,14 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend-domain.rule=(Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)) && (PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`))"
-      - "traefik.http.routers.backend-domain.entrypoints=websecure"
-      - "traefik.http.routers.backend-domain.tls.certresolver=myresolver"
-      - "traefik.http.routers.backend-domain.middlewares=www-redirect@docker"
+      - "traefik.http.routers.backend.rule=(Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)) && (PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`))"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.routers.backend.middlewares=api-proxy@docker"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
       - "traefik.http.routers.backend-local.rule=Host(`localhost`) && (PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`))"
       - "traefik.http.routers.backend-local.entrypoints=web"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.http.routers.backend-http.rule=(Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)) && (PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`))"
-      - "traefik.http.routers.backend-http.entrypoints=web"
-      - "traefik.http.routers.backend-http.middlewares=https-redirect@docker"
+      - "traefik.http.routers.backend-local.middlewares=api-proxy@docker"
     depends_on:
       - postgres
       - traefik
@@ -117,12 +115,13 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.routers.frontend.tls.certresolver=myresolver"
       - "traefik.http.routers.frontend.middlewares=www-redirect@docker"
       - "traefik.http.routers.frontend-local.rule=Host(`localhost`)"
-      - "traefik.http.routers.frontend-local.entrypoints=web,websecure"
+      - "traefik.http.routers.frontend-local.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.api-proxy.forwardauth.address=http://frontend:3000/api-proxy"
       - "traefik.http.routers.frontend-http.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
       - "traefik.http.routers.frontend-http.entrypoints=web"
       - "traefik.http.routers.frontend-http.middlewares=https-redirect@docker"
