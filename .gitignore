@@ -1,5 +1,5 @@
 # Ignore letsencrypt files
 letsencrypt
 
-# aws terraform server
-aws-server
+# # aws terraform server
+# aws-server
