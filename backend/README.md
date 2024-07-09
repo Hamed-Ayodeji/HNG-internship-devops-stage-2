@@ -89,22 +89,21 @@ This section explains how to containerize the backend application using Docker, 
 
     - Copies `pyproject.toml` and `poetry.lock` to the container, defining the project's dependencies.
 
-5. **Install Dependencies**
-
-    ```Dockerfile
-    RUN poetry export -f requirements.txt --output requirements.txt --without-hashes && \
-        pip install --no-cache-dir --upgrade -r requirements.txt
-    ```
-
-    - Exports dependencies to `requirements.txt` and installs them using pip without cache.
-
-6. **Copy Application Code**
+5. **Copy Application Code**
 
     ```Dockerfile
     COPY . .
     ```
 
     - Copies the application code to the container's working directory.
+
+6. **Install Dependencies**
+
+    ```Dockerfile
+    RUN poetry install
+    ```
+
+    - Installs the project dependencies defined in `pyproject.toml`.
 
 7. **Expose Port**
 
@@ -114,12 +113,12 @@ This section explains how to containerize the backend application using Docker, 
 
     - Indicates that the container listens on port 8000.
 
-8. **Start Uvicorn Server**
+8. **Run Prestart.sh and Start Uvicorn Server**
 
     ```Dockerfile
-    CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    CMD ["sh", "-c", "poetry run bash ./prestart.sh && poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
     ```
 
-    - Sets the default command to start the Uvicorn server, making the application accessible from outside the container.
+    - Executes the `prestart.sh` script to set up the database tables and starts the FastAPI application using Uvicorn.
 
 This comprehensive guide ensures a smooth development and deployment workflow by covering both the setup of the backend environment and the dockerization process. Enjoy building your robust backend application!

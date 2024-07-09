@@ -49,7 +49,7 @@ To build and run the application using Docker, follow these steps:
 2. **Run the Docker container**:
 
     ```sh
-    docker run -p 3000:3000 frontend-app
+    docker run -p 5173:5173 frontend-app
     ```
 
 ## Dockerfile Breakdown
@@ -77,15 +77,15 @@ COPY . .
 FROM node:current-slim
 WORKDIR /app
 COPY --from=builder /app ./
-EXPOSE 3000
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+EXPOSE 5173
+CMD ["npm", "run", "dev", "--", "--host"]
 ```
 
 - **Base Image**: Uses `node:current-slim` again for runtime.
 - **Working Directory**: Sets `/app` as the working directory.
 - **Copy Artifacts**: Copies the built application and installed dependencies from the build stage.
-- **Expose Port**: Indicates that the container listens on port 3000.
-- **Start Command**: Specifies the command to start the application in development mode, making it accessible on port 3000.
+- **Expose Port**: Indicates that the container listens on port 5173.
+- **Start Command**: Specifies the command to start the application in development mode, making it accessible on port 5173.
 
 ## Conclusion
 

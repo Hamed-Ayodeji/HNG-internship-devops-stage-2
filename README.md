@@ -124,7 +124,7 @@ This service builds and runs the backend application, likely a FastAPI service. 
 - **Build**: ./frontend
 - **Image**: frontend:react
 - **Container Name**: frontend
-- **Port**: 3000
+- **Port**: 5173
 - **Dependencies**: backend, traefik
 - **Network**: mynetwork
 - **Labels**: Configuration for Traefik routing
@@ -164,7 +164,7 @@ Traefik is configured with the following features:
 
 - **Adminer**: Accessible at either `http://qurtana.com.ng:8080`
 
-![Adminer](./.img/qurtana.com.ng-8080.png)
+![Adminer Login](./.img/qurtana.com.ng-8080-login.png)
 
 - **Traefik Dashboard**: Accessible at `http://qurtana.com.ng:8090`
 
@@ -192,9 +192,9 @@ The configuration includes settings for local development:
 
 - Adminer: `http://db.localhost:8080` or `http://localhost:8080`
 
-![Adminer](./.img/localhost-8080.png)
+![Adminer](./.img/db.localhost.png)
 
-![Adminer Login](./.img/db.localhost.png)
+![Adminer Login](./.img/localhost-8080-login.png)
 
 - Traefik Dashboard: `http://proxy.localhost:8090` or `http://localhost:8090`
 
@@ -217,6 +217,8 @@ The configuration includes settings for local development:
 - Frontend: `http://localhost`
 
 ![Frontend](./.img/localhost.png)
+
+![Frontend Login](./.img/localhost-login.png)
 
 ## Security Notes
 
