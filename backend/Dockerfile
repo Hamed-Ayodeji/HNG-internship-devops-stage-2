@@ -12,15 +12,14 @@ RUN pip install poetry && \
 # Copy the Poetry configuration files to install Python dependencies
 COPY ./pyproject.toml ./poetry.lock* ./
 
-# Export the dependencies to a requirements.txt file and install the Python dependencies
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes && \
-    pip install --no-cache-dir --upgrade -r requirements.txt
-
 # Copy the application code into the container
 COPY . .
+
+# Install the Python dependencies
+RUN poetry install
 
 # Expose the port the application listens on
 EXPOSE 8000
 
-# Start the Uvicorn server with the application
-CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run prestart and start the Uvicorn server with the application
+CMD ["sh", "-c", "poetry run bash ./prestart.sh && poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
