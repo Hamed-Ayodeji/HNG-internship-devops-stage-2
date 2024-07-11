@@ -1,143 +1,51 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  postgres:
-    image: postgres:17beta1-alpine
-    container_name: postgresDb
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
     env_file:
-      - .env
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./backend/.env
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./frontend/.env
+
+  db:
+    image: postgres:17beta1-alpine
     ports:
       - "5432:5432"
-    networks:
-      - mynetwork
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./backend/.env
 
   adminer:
-    image: adminer:latest
-    container_name: postgresDbAdminer
-    env_file:
-      - .env
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.adminer-domain.rule=Host(`db.${DOMAIN}`)"
-      - "traefik.http.routers.adminer-domain.entrypoints=websecure"
-      - "traefik.http.routers.adminer-domain.tls=true"
-      - "traefik.http.routers.adminer-domain.tls.certresolver=myresolver"
-      - "traefik.http.routers.adminer-domain-http.rule=Host(`db.${DOMAIN}`)"
-      - "traefik.http.routers.adminer-domain-http.entrypoints=web"
-      - "traefik.http.routers.adminer-domain-http.middlewares=https-redirect@docker"
-      - "traefik.http.routers.adminer-local.rule=Host(`db.localhost`)"
-      - "traefik.http.routers.adminer-local.entrypoints=web"
-      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
-    depends_on:
-      - postgres
+    image: adminer
     ports:
       - "8080:8080"
-    networks:
-      - mynetwork
 
-  traefik:
-    image: traefik:v2.5
-    container_name: traefikProxyManager
-    env_file:
-      - .env
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.traefik.address=:8090"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+  proxy:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx_proxy_manager
     ports:
       - "80:80"
       - "443:443"
-      - "8090:8090"
+      - "8090:81"
+    environment:
+      DB_SQLITE_FILE: "/data/database.sqlite"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./letsencrypt:/letsencrypt
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik-domain.rule=Host(`proxy.${DOMAIN}`)"
-      - "traefik.http.routers.traefik-domain.service=api@internal"
-      - "traefik.http.routers.traefik-domain.entrypoints=traefik"
-      - "traefik.http.routers.traefik-domain-secure.rule=Host(`proxy.${DOMAIN}`)"
-      - "traefik.http.routers.traefik-domain-secure.entrypoints=websecure"
-      - "traefik.http.routers.traefik-domain-secure.tls=true"
-      - "traefik.http.routers.traefik-domain-secure.tls.certresolver=myresolver"
-      - "traefik.http.routers.traefik-domain-secure.service=api@internal"
-      - "traefik.http.routers.traefik-local.rule=Host(`proxy.localhost`)"
-      - "traefik.http.routers.traefik-local.service=api@internal"
-      - "traefik.http.routers.traefik-local.entrypoints=traefik"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
-      - "traefik.http.middlewares.www-redirect.redirectregex.regex=^https://www\\.(.+)"
-      - "traefik.http.middlewares.www-redirect.redirectregex.replacement=https://$${1}"
-      - "traefik.http.middlewares.www-redirect.redirectregex.permanent=true"
-    networks:
-      - mynetwork
-
-  backend:
-    build: ./backend
-    image: backend:fastapi
-    container_name: backend
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=(Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)) && (PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`))"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls=true"
-      - "traefik.http.routers.backend.tls.certresolver=myresolver"
-      - "traefik.http.routers.backend.middlewares=api-proxy@docker"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.http.routers.backend-local.rule=Host(`localhost`) && (PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`))"
-      - "traefik.http.routers.backend-local.entrypoints=web"
-      - "traefik.http.routers.backend-local.middlewares=api-proxy@docker"
-    depends_on:
-      - postgres
-      - traefik
-    networks:
-      - mynetwork
-
-  frontend:
-    build: ./frontend
-    image: frontend:react
-    container_name: frontend
-    ports:
-      - "5173:5173"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls=true"
-      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
-      - "traefik.http.routers.frontend.middlewares=www-redirect@docker"
-      - "traefik.http.routers.frontend-local.rule=Host(`localhost`)"
-      - "traefik.http.routers.frontend-local.entrypoints=web"
-      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
-      - "traefik.http.middlewares.api-proxy.forwardauth.address=http://frontend:5173/api-proxy"
-      - "traefik.http.routers.frontend-http.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)"
-      - "traefik.http.routers.frontend-http.entrypoints=web"
-      - "traefik.http.routers.frontend-http.middlewares=https-redirect@docker"
-    depends_on:
-      - backend
-      - traefik
-    networks:
-      - mynetwork
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
 
 volumes:
   postgres_data:
+  data:
   letsencrypt:
-
-networks:
-  mynetwork:

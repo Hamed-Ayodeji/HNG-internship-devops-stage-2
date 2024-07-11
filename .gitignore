@@ -1,8 +1,0 @@
-# Ignore letsencrypt files
-letsencrypt
-
-# # aws terraform server
-# aws-server
-
-# secret files
-# .env

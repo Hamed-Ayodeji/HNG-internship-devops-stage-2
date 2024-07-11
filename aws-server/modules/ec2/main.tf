@@ -36,3 +36,13 @@ resource "aws_instance" "server" {
 
   depends_on              = [ aws_key_pair.rsa_key_pair ]
 }
+
+resource "aws_eip" "server" {
+  instance                = aws_instance.server.id
+
+  tags                    = {
+    Name                  = "${var.project_name}-server-eip"
+  }
+
+  depends_on              = [ aws_instance.server ]
+}
